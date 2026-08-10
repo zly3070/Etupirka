@@ -1,5 +1,24 @@
 # Etupirka
 
+## 📝 本フォークについて / About This Fork / 关于本分支
+
+本リポジトリは **Etupirka の多言語移植版（フォーク）** です。  
+オリジナルの日本語インターフェースを**簡体字中国語**と**英語**に翻訳し、多言語対応を**実装を進めています**（作業中）。
+
+This repository is a **multilingual port (fork) of Etupirka**.  
+The original Japanese interface **is being translated** into **Simplified Chinese** and **English** to support multiple languages. (Work in progress)
+
+本仓库是 **Etupirka 的多语言移植版（Fork）**。  
+**正在进行**将原始日文界面翻译为**简体中文**和**英文**的工作，以实现多语言支持。（开发中）
+
+| | | |
+| :--- | :--- | :--- |
+| **オリジナル / Original / 原作** | [Arisin/Etupirka](https://github.com/Arisin/Etupirka) | MIT License |
+| **翻訳作業 / Translation / 翻译内容** | 日本語 → 简体中文 / English | |
+| **翻訳者 / Translator / 译者** | [zly3070](https://github.com/zly3070) | |
+| **年 / Year / 年份** | 2026 | |
+| **ステータス / Status / 状态** | 作業中 / Work in progress / 开发中 | |
+
 ## 概要
 エロゲのプレイ時間を統計するツールです。
 
