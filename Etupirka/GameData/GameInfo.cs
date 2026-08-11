@@ -102,7 +102,7 @@ namespace Etupirka
 			}
 		} 
 
-		public async Task updateInfoFromESOnline()
+		public async Task updateInfoFromESOnline() // 这里拉了
 		{
 			if (erogameScapeID > 0)
 			{

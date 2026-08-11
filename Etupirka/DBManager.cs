@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Etupirka
 {
-	class DBManager
+	class DBManager // 数据库
 	{
 		private string db_file;
 		public SQLiteConnection conn;

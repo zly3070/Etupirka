@@ -41,187 +41,187 @@ using System.Web;
 
 namespace Etupirka
 {
-	public enum StatusBarStatus
-	{
-		watching = 0, resting = 1, erogehelper = 2
-	}
+    public enum StatusBarStatus
+    {
+        watching = 0, resting = 1, erogehelper = 2
+    }
 
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : MetroWindow, INotifyPropertyChanged
-	{
-		#region Property
-		public event PropertyChangedEventHandler PropertyChanged;
-		protected void OnPropertyChanged(string name)
-		{
-			if (PropertyChanged == null) return;
-			PropertyChanged(this, new PropertyChangedEventArgs(name));
-		}
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
+    {
+        #region Property
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name)
+        {
+            if (PropertyChanged == null) return;
+            PropertyChanged(this, new PropertyChangedEventArgs(name));
+        }
 
-		public int ItemCount
-		{
-			get
-			{
-				if (items == null)
-				{
-					return 0;
-				}
-				return items.Count;
-			}
-		}
+        public int ItemCount
+        {
+            get
+            {
+                if (items == null)
+                {
+                    return 0;
+                }
+                return items.Count;
+            }
+        }
 
-		public string TotalTime
-		{
-			get
-			{
-				if (items == null) return "";
-				int t = 0;
-				foreach (GameExecutionInfo i in items)
-				{
-					t += i.TotalPlayTime;
-				}
-				return t / 3600 + @"時間" + (t / 60) % 60 + @"分";
-			}
-		}
+        public string TotalTime
+        {
+            get
+            {
+                if (items == null) return "";
+                int t = 0;
+                foreach (GameExecutionInfo i in items)
+                {
+                    t += i.TotalPlayTime;
+                }
+                return t / 3600 + @"時間" + (t / 60) % 60 + @"分";
+            }
+        }
 
-		public bool WatchProc
-		{
-			get
-			{
-				return Properties.Settings.Default.watchProcess;
-			}
-			set
-			{
-				Properties.Settings.Default.watchProcess = value;
+        public bool WatchProc
+        {
+            get
+            {
+                return Properties.Settings.Default.watchProcess;
+            }
+            set
+            {
+                Properties.Settings.Default.watchProcess = value;
 
-				OnPropertyChanged("WatchProc");
-				OnPropertyChanged("StatusBarStat");
-			}
-		}
-
-
-		bool erogeHelper=false;
-		public bool ErogeHelper
-		{
-			get
-			{
-				return erogeHelper;
-			}
-			set
-			{
-
-				if (!value)
-				{
-					GameListView.Visibility = Visibility.Visible;
-					MenuBar.Visibility = Visibility.Visible;
-					this.ShowTitleBar = true;
-
-				}
-				else
-				{
-					GameListView.Visibility = Visibility.Hidden;
-					MenuBar.Visibility = Visibility.Hidden;
-					this.ShowTitleBar = false;
-				}
-
-				erogeHelper = value;
-				OnPropertyChanged("ErogeHelper");
-				OnPropertyChanged("StatusBarStat");
-			}
-		}
+                OnPropertyChanged("WatchProc");
+                OnPropertyChanged("StatusBarStat");
+            }
+        }
 
 
-		public StatusBarStatus StatusBarStat
-		{
-			get
-			{
-				if (ErogeHelper) return StatusBarStatus.erogehelper;
-				if (WatchProc) return StatusBarStatus.watching;
-				return StatusBarStatus.resting;
-			}
-		}
+        bool erogeHelper = false;
+        public bool ErogeHelper
+        {
+            get
+            {
+                return erogeHelper;
+            }
+            set
+            {
 
-		#endregion
+                if (!value)
+                {
+                    GameListView.Visibility = Visibility.Visible;
+                    MenuBar.Visibility = Visibility.Visible;
+                    this.ShowTitleBar = true;
 
-		#region Hotkey
-		private HotKey _hotkey;
-		private void OnHotKeyHandler_WatchProc(HotKey hotKey)
-		{
-			if (Properties.Settings.Default.playVoice)
-			{
-				if (WatchProc)
-				{
-					SoundPlayer sp = new SoundPlayer(Properties.Resources.stop2);
-					sp.Play();
-				}
-				else
-				{
-					SoundPlayer sp = new SoundPlayer(Properties.Resources.start2);
-					sp.Play();
+                }
+                else
+                {
+                    GameListView.Visibility = Visibility.Hidden;
+                    MenuBar.Visibility = Visibility.Hidden;
+                    this.ShowTitleBar = false;
+                }
 
-				}
-			}
-			WatchProc = !WatchProc;
-		}
+                erogeHelper = value;
+                OnPropertyChanged("ErogeHelper");
+                OnPropertyChanged("StatusBarStat");
+            }
+        }
 
-		private void OnHotKeyHandler_ErogeHelper(HotKey hotKey)
-		{
-			ErogeHelper = !ErogeHelper;
-		}
 
-		#endregion
-		
-		private ObservableCollection<GameExecutionInfo> items;
+        public StatusBarStatus StatusBarStat
+        {
+            get
+            {
+                if (ErogeHelper) return StatusBarStatus.erogehelper;
+                if (WatchProc) return StatusBarStatus.watching;
+                return StatusBarStatus.resting;
+            }
+        }
+
+        #endregion
+
+        #region Hotkey
+        private HotKey _hotkey;
+        private void OnHotKeyHandler_WatchProc(HotKey hotKey)
+        {
+            if (Properties.Settings.Default.playVoice)
+            {
+                if (WatchProc)
+                {
+                    SoundPlayer sp = new SoundPlayer(Properties.Resources.stop2);
+                    sp.Play();
+                }
+                else
+                {
+                    SoundPlayer sp = new SoundPlayer(Properties.Resources.start2);
+                    sp.Play();
+
+                }
+            }
+            WatchProc = !WatchProc;
+        }
+
+        private void OnHotKeyHandler_ErogeHelper(HotKey hotKey)
+        {
+            ErogeHelper = !ErogeHelper;
+        }
+
+        #endregion
+
+        private ObservableCollection<GameExecutionInfo> items;
         private System.Windows.Threading.DispatcherTimer watchProcTimer;
-		private DBManager db;
+        private DBManager db;
         private ProcessInfoCache processInfoCache = new ProcessInfoCache();
 
         public MainWindow()
-		{
+        {
 
-			if (Settings.Default.UpgradeRequired)
-			{
-				Settings.Default.Upgrade();
-				Settings.Default.UpgradeRequired = false;
-				Settings.Default.Save();
-			}
+            if (Settings.Default.UpgradeRequired)
+            {
+                Settings.Default.Upgrade();
+                Settings.Default.UpgradeRequired = false;
+                Settings.Default.Save();
+            }
 
-			InitializeComponent();
-			tbico.DoubleClickCommand = new ShowAppCommand(this);
-			tbico.DataContext = this;
+            InitializeComponent();
+            tbico.DoubleClickCommand = new ShowAppCommand(this);
+            tbico.DataContext = this;
 
-			if (Settings.Default.Do_minimize)
-			{
-				this.Hide();
-				Settings.Default.Do_minimize = false;
-				Settings.Default.Save();
-			}
+            if (Settings.Default.Do_minimize)
+            {
+                this.Hide();
+                Settings.Default.Do_minimize = false;
+                Settings.Default.Save();
+            }
 
-			db = new DBManager(Utility.userDBPath);
-			Utility.im = new InformationManager(Utility.infoDBPath);
+            db = new DBManager(Utility.userDBPath);
+            Utility.im = new InformationManager(Utility.infoDBPath);
 
             items = new ObservableCollection<GameExecutionInfo>();
             db.LoadGame(items);
 
-			GameListView.ItemsSource = items;
-			GameListView.SelectedItem = null;
-			UpdateStatus();
-			OnPropertyChanged("ItemCount");
+            GameListView.ItemsSource = items;
+            GameListView.SelectedItem = null;
+            UpdateStatus();
+            OnPropertyChanged("ItemCount");
 
-			_hotkey = new HotKey(Key.F9, KeyModifier.Alt, OnHotKeyHandler_WatchProc);
-			_hotkey = new HotKey(Key.F8, KeyModifier.Alt, OnHotKeyHandler_ErogeHelper);
+            _hotkey = new HotKey(Key.F9, KeyModifier.Alt, OnHotKeyHandler_WatchProc);
+            _hotkey = new HotKey(Key.F8, KeyModifier.Alt, OnHotKeyHandler_ErogeHelper);
 
-			RegisterInStartup(Properties.Settings.Default.setStartUp);
-			if (Properties.Settings.Default.disableGlowBrush)
-			{
-				this.GlowBrush = null;
-			}
+            RegisterInStartup(Properties.Settings.Default.setStartUp);
+            if (Properties.Settings.Default.disableGlowBrush)
+            {
+                this.GlowBrush = null;
+            }
 
-			watchProcTimer = new System.Windows.Threading.DispatcherTimer();
-			watchProcTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-			watchProcTimer.Interval = new TimeSpan(0, 0, Properties.Settings.Default.monitorInterval);
-			watchProcTimer.Start();
+            watchProcTimer = new System.Windows.Threading.DispatcherTimer();
+            watchProcTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            watchProcTimer.Interval = new TimeSpan(0, 0, Properties.Settings.Default.monitorInterval);
+            watchProcTimer.Start();
 
             if (Settings.Default.checkUpdate)
             {
@@ -258,11 +258,11 @@ namespace Etupirka
             return false;
         }
 
-        private void UpdateStatus(int time=0)
-		{
-			IntPtr actWin = Utility.GetForegroundWindow();
-			int calcID;
-			Utility.GetWindowThreadProcessId(actWin, out calcID);
+        private void UpdateStatus(int time = 0)
+        {
+            IntPtr actWin = Utility.GetForegroundWindow(); // actWin当前正在运行的窗口
+            int calcID;
+            Utility.GetWindowThreadProcessId(actWin, out calcID); // 查询得到窗口对应 PID
             var currentProc = Process.GetProcessById(calcID);
             try
             {
@@ -271,13 +271,15 @@ namespace Etupirka
                     calcID = Utility.ParentProcessUtilities.GetParentProcess(calcID).Id;
                 }
             }
-            catch(Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine(e);
             }
 
             bool play_flag = false;
 
-            this.Dispatcher.BeginInvoke(new Action(() => {
+            this.Dispatcher.BeginInvoke(new Action(() =>
+            {
                 Process[] proc = Process.GetProcesses();
 
                 Dictionary<String, bool> dic = new Dictionary<string, bool>();
@@ -757,7 +759,8 @@ namespace Etupirka
             {
                 controller.SetCancelable(true);
                 var source = new CancellationTokenSource();
-                controller.Canceled += (_, __) => {
+                controller.Canceled += (_, __) =>
+                {
                     source.Cancel();
                 };
 
@@ -1099,7 +1102,8 @@ namespace Etupirka
                     return "#0e6c8f";
                 default:
                     return "#f5f5f5";
-            };
+            }
+            ;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter,
