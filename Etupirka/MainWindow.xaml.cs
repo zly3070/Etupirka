@@ -38,6 +38,7 @@ using Etupirka.Properties;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Web;
+using Etupirka.Localization;
 
 namespace Etupirka
 {
@@ -81,7 +82,7 @@ namespace Etupirka
                 {
                     t += i.TotalPlayTime;
                 }
-                return t / 3600 + @"時間" + (t / 60) % 60 + @"分";
+                return string.Format(Strings.Get("Time_HoursMinutes"), t / 3600, (t / 60) % 60);
             }
         }
 
@@ -249,7 +250,7 @@ namespace Etupirka
             Version myVersion = new Version(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion);
             if (lastestVersion > myVersion)
             {
-                if (MessageBox.Show("バージョン " + str + " が見つかりました。更新しますか？", "Etupirkaを更新", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                if (MessageBox.Show(string.Format(Strings.Get("Update_Available"), str), Strings.Get("Update_Title"), MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
                     Process.Start("https://github.com/Aixile/Etupirka/releases");
                 }
@@ -754,7 +755,7 @@ namespace Etupirka
 
         private async void UpdateOfflineDatabase_Click(object sender, RoutedEventArgs e)
         {
-            var controller = await this.ShowProgressAsync("更新中", "ダウンロード中...");
+            var controller = await this.ShowProgressAsync(Strings.Get("Update_Updating"), Strings.Get("Update_Downloading"));
             try
             {
                 controller.SetCancelable(true);
@@ -792,15 +793,15 @@ namespace Etupirka
                     }
                 }
 
-                controller.SetMessage("データベースを更新中...");
+                controller.SetMessage(Strings.Get("Database_Updating"));
                 Utility.im.update(infoList);
                 await controller.CloseAsync();
-                await this.ShowMessageAsync("データベースの更新", "成功しました");
+                await this.ShowMessageAsync(Strings.Get("Database_UpdateTitle"), Strings.Get("Common_Succeeded"));
             }
             catch
             {
                 await controller.CloseAsync();
-                await this.ShowMessageAsync("データベースの更新", "失敗しました");
+                await this.ShowMessageAsync(Strings.Get("Database_UpdateTitle"), Strings.Get("Common_Failed"));
             }
         }
 
@@ -817,7 +818,7 @@ namespace Etupirka
         private void VersionInfo_Click(object sender, RoutedEventArgs e)
         {
 
-            showMessage("バージョン情報", "Version " + FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion +
+            showMessage(Strings.Get("About_Title"), "Version " + FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion +
                 " By Aixile (X @_aixile).");
 
         }
@@ -828,12 +829,12 @@ namespace Etupirka
             {
                 if (!await doCheckUpdate())
                 {
-                    MessageBox.Show("最新バージョンがインストールされています", "更新の確認");
+                    MessageBox.Show(Strings.Get("Update_LatestInstalled"), Strings.Get("Update_CheckTitle"));
                 }
             }
             catch
             {
-                MessageBox.Show("更新の確認に失敗しました", "更新の確認");
+                MessageBox.Show(Strings.Get("Update_CheckFailed"), Strings.Get("Update_CheckTitle"));
             }
         }
 
@@ -892,7 +893,7 @@ namespace Etupirka
             ArrayList a = new ArrayList(GameListView.SelectedItems);
             if (a.Count != 0)
             {
-                MessageDialogResult re = await this.ShowMessageAsync("削除の確認", "選択したゲームを削除しますか？", MessageDialogStyle.AffirmativeAndNegative);
+                MessageDialogResult re = await this.ShowMessageAsync(Strings.Get("Delete_Title"), Strings.Get("Delete_Message"), MessageDialogStyle.AffirmativeAndNegative);
                 if (re != MessageDialogResult.Affirmative)
                 {
                     return;

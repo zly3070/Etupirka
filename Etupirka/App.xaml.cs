@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 namespace Etupirka
 {
@@ -20,6 +22,7 @@ namespace Etupirka
 		{
 			if (SingleInstance<App>.InitializeAsFirstInstance(Unique))
 			{
+				ApplyLanguage();
 				string[] args = Environment.GetCommandLineArgs(); //返回当前进程的命令行字符串
 				if (args.Count() > 1 && args[1].Equals("-min")) // 命令的第“1”个参数是最小化则最小化启动
 				{
@@ -34,6 +37,17 @@ namespace Etupirka
 				// Allow single instance code to perform cleanup operations
 				SingleInstance<App>.Cleanup();
 			}
+		}
+
+		private static void ApplyLanguage()
+		{
+			string language = Settings.Default.language;
+			if (language != "zh-CN" && language != "ja-JP")
+			{
+				language = "en";
+			}
+
+			Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(language);
 		}
 
 		#region ISingleInstanceApp Members
