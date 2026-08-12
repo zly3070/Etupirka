@@ -39,6 +39,8 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Web;
 using Etupirka.Localization;
+using System.Windows.Threading;
+using System.Collections.Specialized;
 
 namespace Etupirka
 {
@@ -177,6 +179,16 @@ namespace Etupirka
         private System.Windows.Threading.DispatcherTimer watchProcTimer;
         private DBManager db;
         private ProcessInfoCache processInfoCache = new ProcessInfoCache();
+        private readonly Dictionary<GridViewColumn, double> gameColumnMinimumWidths = new Dictionary<GridViewColumn, double>();
+        private readonly DependencyPropertyDescriptor gameColumnWidthDescriptor =
+            DependencyPropertyDescriptor.FromProperty(GridViewColumn.WidthProperty, typeof(GridViewColumn));
+        private ScrollViewer gameListScrollViewer;
+        private bool isUpdatingGameColumnWidths;
+        private bool isGameColumnUpdatePending;
+        private bool isGameColumnResizeInProgress;
+        private GridViewColumn resizedGameColumn;
+        private GridViewColumn adjacentGameColumn;
+        private double resizedGameColumnPairWidth;
 
         public MainWindow()
         {
@@ -189,6 +201,7 @@ namespace Etupirka
             }
 
             InitializeComponent();
+            InitializeGameColumnSizing();
             tbico.DoubleClickCommand = new ShowAppCommand(this);
             tbico.DataContext = this;
 
@@ -235,6 +248,313 @@ namespace Etupirka
         }
 
         #region Function
+        private void InitializeGameColumnSizing()
+        {
+            foreach (GridViewColumn column in GameGridView.Columns)
+            {
+                gameColumnWidthDescriptor.AddValueChanged(column, GameColumnWidthChanged);
+            }
+
+            ((INotifyCollectionChanged)GameGridView.Columns).CollectionChanged += delegate
+            {
+                QueueGameColumnUpdate();
+            };
+
+            GameListView.Loaded += delegate
+            {
+                gameListScrollViewer = FindVisualChild<ScrollViewer>(GameListView);
+                MeasureGameColumnMinimumWidths();
+                QueueGameColumnUpdate();
+            };
+            GameListView.SizeChanged += delegate { QueueGameColumnUpdate(); };
+            GameListView.AddHandler(
+                Thumb.DragStartedEvent,
+                new DragStartedEventHandler(delegate(object sender, DragStartedEventArgs e)
+                {
+                    GridViewColumnHeader header = FindVisualParent<GridViewColumnHeader>(e.OriginalSource as DependencyObject);
+                    resizedGameColumn = header == null ? null : header.Column;
+                    List<GridViewColumn> columns = GameGridView.Columns.Cast<GridViewColumn>().ToList();
+                    int resizedColumnIndex = resizedGameColumn == null ? -1 : columns.IndexOf(resizedGameColumn);
+                    adjacentGameColumn = resizedColumnIndex >= 0 && resizedColumnIndex < columns.Count - 1
+                        ? columns[resizedColumnIndex + 1]
+                        : null;
+                    resizedGameColumnPairWidth = adjacentGameColumn == null
+                        ? 0
+                        : GetGameColumnWidth(resizedGameColumn) + GetGameColumnWidth(adjacentGameColumn);
+                    isGameColumnResizeInProgress = adjacentGameColumn != null;
+                }),
+                true);
+            GameListView.AddHandler(
+                Thumb.DragCompletedEvent,
+                new DragCompletedEventHandler(delegate
+                {
+                    isGameColumnResizeInProgress = false;
+                    resizedGameColumn = null;
+                    adjacentGameColumn = null;
+                    resizedGameColumnPairWidth = 0;
+                    QueueGameColumnUpdate();
+                }),
+                true);
+        }
+
+        private void GameColumnWidthChanged(object sender, EventArgs e)
+        {
+            if (isUpdatingGameColumnWidths)
+            {
+                return;
+            }
+
+            GridViewColumn column = sender as GridViewColumn;
+            if (column == null)
+            {
+                return;
+            }
+
+            double minimumWidth = GetGameColumnMinimumWidth(column);
+            if (GetGameColumnWidth(column) < minimumWidth)
+            {
+                isUpdatingGameColumnWidths = true;
+                try
+                {
+                    column.Width = minimumWidth;
+                }
+                finally
+                {
+                    isUpdatingGameColumnWidths = false;
+                }
+            }
+
+            if (isGameColumnResizeInProgress)
+            {
+                ResizeAdjacentGameColumns(column);
+            }
+            else
+            {
+                QueueGameColumnUpdate();
+            }
+        }
+
+        private void ResizeAdjacentGameColumns(GridViewColumn changedColumn)
+        {
+            if (changedColumn != resizedGameColumn || adjacentGameColumn == null || resizedGameColumnPairWidth <= 0)
+            {
+                return;
+            }
+
+            double resizedMinimumWidth = GetGameColumnMinimumWidth(resizedGameColumn);
+            double adjacentMinimumWidth = GetGameColumnMinimumWidth(adjacentGameColumn);
+            double maximumResizedWidth = resizedGameColumnPairWidth - adjacentMinimumWidth;
+            double resizedWidth = Math.Max(
+                resizedMinimumWidth,
+                Math.Min(GetGameColumnWidth(resizedGameColumn), maximumResizedWidth));
+            double adjacentWidth = resizedGameColumnPairWidth - resizedWidth;
+
+            isUpdatingGameColumnWidths = true;
+            try
+            {
+                if (Math.Abs(GetGameColumnWidth(resizedGameColumn) - resizedWidth) > 0.5)
+                {
+                    resizedGameColumn.Width = resizedWidth;
+                }
+
+                if (Math.Abs(GetGameColumnWidth(adjacentGameColumn) - adjacentWidth) > 0.5)
+                {
+                    adjacentGameColumn.Width = adjacentWidth;
+                }
+            }
+            finally
+            {
+                isUpdatingGameColumnWidths = false;
+            }
+        }
+
+        private void QueueGameColumnUpdate()
+        {
+            if (isGameColumnUpdatePending || !GameListView.IsLoaded)
+            {
+                return;
+            }
+
+            isGameColumnUpdatePending = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                isGameColumnUpdatePending = false;
+                FitGameColumnsToViewport();
+            }));
+        }
+
+        private void FitGameColumnsToViewport()
+        {
+            if (isUpdatingGameColumnWidths)
+            {
+                return;
+            }
+
+            double viewportWidth = GetGameListViewportWidth();
+            if (viewportWidth <= 0)
+            {
+                return;
+            }
+
+            List<GridViewColumn> displayedColumns = GameGridView.Columns.Cast<GridViewColumn>().ToList();
+            if (displayedColumns.Count == 0)
+            {
+                return;
+            }
+
+            isUpdatingGameColumnWidths = true;
+            try
+            {
+                foreach (GridViewColumn column in displayedColumns)
+                {
+                    double minimumWidth = GetGameColumnMinimumWidth(column);
+                    double currentWidth = GetGameColumnWidth(column);
+                    if (currentWidth < minimumWidth)
+                    {
+                        column.Width = minimumWidth;
+                    }
+                }
+
+                GridViewColumn rightmostColumn = displayedColumns[displayedColumns.Count - 1];
+                double rightmostMinimumWidth = GetGameColumnMinimumWidth(rightmostColumn);
+                double otherColumnsWidth = displayedColumns
+                    .Where(column => column != rightmostColumn)
+                    .Sum(GetGameColumnWidth);
+
+                double overflow = otherColumnsWidth + rightmostMinimumWidth - viewportWidth;
+                if (overflow > 0)
+                {
+                    IEnumerable<GridViewColumn> shrinkOrder = displayedColumns
+                        .Where(column => column != rightmostColumn)
+                        .OrderByDescending(column => column == resizedGameColumn)
+                        .ThenByDescending(column => displayedColumns.IndexOf(column));
+
+                    foreach (GridViewColumn column in shrinkOrder)
+                    {
+                        double currentWidth = GetGameColumnWidth(column);
+                        double minimumWidth = GetGameColumnMinimumWidth(column);
+                        double reduction = Math.Min(currentWidth - minimumWidth, overflow);
+                        if (reduction > 0)
+                        {
+                            column.Width = currentWidth - reduction;
+                            overflow -= reduction;
+                        }
+
+                        if (overflow <= 0.5)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                otherColumnsWidth = displayedColumns
+                    .Where(column => column != rightmostColumn)
+                    .Sum(GetGameColumnWidth);
+                double targetRightmostWidth = Math.Max(rightmostMinimumWidth, viewportWidth - otherColumnsWidth);
+                if (Math.Abs(GetGameColumnWidth(rightmostColumn) - targetRightmostWidth) > 0.5)
+                {
+                    rightmostColumn.Width = targetRightmostWidth;
+                }
+            }
+            finally
+            {
+                isUpdatingGameColumnWidths = false;
+            }
+        }
+
+        private double GetGameListViewportWidth()
+        {
+            if (gameListScrollViewer == null)
+            {
+                gameListScrollViewer = FindVisualChild<ScrollViewer>(GameListView);
+            }
+
+            double viewportWidth = gameListScrollViewer == null
+                ? GameListView.ActualWidth
+                : gameListScrollViewer.ViewportWidth;
+            return double.IsNaN(viewportWidth) || double.IsInfinity(viewportWidth)
+                ? 0
+                : viewportWidth;
+        }
+
+        private void MeasureGameColumnMinimumWidths()
+        {
+            Typeface typeface = new Typeface(
+                GameListView.FontFamily,
+                GameListView.FontStyle,
+                GameListView.FontWeight,
+                GameListView.FontStretch);
+
+            foreach (GridViewColumn column in GameGridView.Columns)
+            {
+                string headerText = column.Header == null ? string.Empty : column.Header.ToString();
+                FormattedText formattedText = new FormattedText(
+                    headerText,
+                    CultureInfo.CurrentUICulture,
+                    FlowDirection.LeftToRight,
+                    typeface,
+                    GameListView.FontSize,
+                    System.Windows.Media.Brushes.Black,
+                    VisualTreeHelper.GetDpi(GameListView).PixelsPerDip);
+
+                // Keep the full label visible and retain the standard header padding/gripper area.
+                gameColumnMinimumWidths[column] = Math.Ceiling(formattedText.WidthIncludingTrailingWhitespace) + 16;
+            }
+        }
+
+        private double GetGameColumnMinimumWidth(GridViewColumn column)
+        {
+            return gameColumnMinimumWidths.TryGetValue(column, out double minimumWidth) ? minimumWidth : 50;
+        }
+
+        private static double GetGameColumnWidth(GridViewColumn column)
+        {
+            return double.IsNaN(column.Width) ? column.ActualWidth : column.Width;
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            return FindVisualChildren<T>(parent).FirstOrDefault();
+        }
+
+        private static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject current = child;
+            while (current != null)
+            {
+                if (current is T match)
+                {
+                    return match;
+                }
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null)
+            {
+                yield break;
+            }
+
+            for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T match)
+                {
+                    yield return match;
+                }
+
+                foreach (T descendant in FindVisualChildren<T>(child))
+                {
+                    yield return descendant;
+                }
+            }
+        }
+
         private async Task<bool> doCheckUpdate()
         {
             JToken json = await NetworkUtility.GetJson("https://api.github.com/repos/aixile/etupirka/releases");

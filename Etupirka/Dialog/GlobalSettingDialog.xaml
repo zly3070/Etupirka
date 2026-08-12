@@ -19,13 +19,19 @@
         
         <TabControl Name="ConfigTab" SelectionChanged="TabControl_SelectionChanged" TabStripPlacement="Left" Margin="15" Grid.Row="0">
             <Controls:MetroTabItem Header="{loc:Loc Tab_General}" Controls:ControlsHelper.HeaderFontSize="20">
-                <Views:GeneralConfigView x:Name="GeneralView" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Views:GeneralConfigView x:Name="GeneralView" />
+                </ScrollViewer>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="{loc:Loc Tab_Database}" Controls:ControlsHelper.HeaderFontSize="20">
-                <Views:DatabaseConfigView x:Name="DatabaseView" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Views:DatabaseConfigView x:Name="DatabaseView" />
+                </ScrollViewer>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="{loc:Loc Tab_Network}" Controls:ControlsHelper.HeaderFontSize="20">
-                <Views:NetworkConfigView  x:Name="NetworkView" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Views:NetworkConfigView x:Name="NetworkView" />
+                </ScrollViewer>
             </Controls:MetroTabItem>
         </TabControl>
         <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="10">

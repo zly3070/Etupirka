@@ -35,7 +35,6 @@
     <Grid>
         <Grid.Resources>
             <local:PathStyleConverter x:Key="pathStyleConverter"/>
-            <local:StatusStyleConverter x:Key="statusStyleConverter"/>
             <local:StatusBarStyleConverter x:Key="statusBarStyleConverter" />
         </Grid.Resources>
         <Grid.RowDefinitions>
@@ -85,55 +84,54 @@
                 <MenuItem Header="{loc:Loc Menu_About}" Name="VersionInfo" Click="VersionInfo_Click"/>
             </MenuItem>
         </Menu>
-        <ListView Grid.Row="1"  BorderThickness="0" Name="GameListView" FontSize="11" IsSynchronizedWithCurrentItem="True" Util:GridViewSort.AutoSort="True" MouseDoubleClick="GameListView_MouseDoubleClick" KeyDown="GameListView_KeyDown" >
+        <ListView Grid.Row="1" BorderThickness="0" Padding="0" Name="GameListView" FontSize="11" IsSynchronizedWithCurrentItem="True" Util:GridViewSort.AutoSort="True" MouseDoubleClick="GameListView_MouseDoubleClick" KeyDown="GameListView_KeyDown" >
             <ListView.InputBindings>
                 <KeyBinding Key="Enter" />
             </ListView.InputBindings>
             <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="30" Util:GridViewSort.PropertyName="Status" >
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock  Foreground="{Binding Path=Status,Converter={StaticResource statusStyleConverter}}"  FontFamily="Webdings" Text="=" FontSize="20"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_Game}" Width="225" Util:GridViewSort.PropertyName="Title">
+                <GridView x:Name="GameGridView" AllowsColumnReorder="True">
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="{x:Type GridViewColumnHeader}" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+                            <Setter Property="Controls:ControlsHelper.ContentCharacterCasing" Value="Normal" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+                    <GridViewColumn x:Name="GameColumn" Header="{loc:Loc Column_Game}" Width="225" Util:GridViewSort.PropertyName="Title">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding Title}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_Brand}" Width="95" Util:GridViewSort.PropertyName="Brand">
+                    <GridViewColumn x:Name="BrandColumn" Header="{loc:Loc Column_Brand}" Width="95" Util:GridViewSort.PropertyName="Brand">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding Brand}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_ReleaseDate}" Width="80" Util:GridViewSort.PropertyName="SaleDay">
+                    <GridViewColumn x:Name="ReleaseDateColumn" Header="{loc:Loc Column_ReleaseDate}" Width="80" Util:GridViewSort.PropertyName="SaleDay">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding SaleDayString}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_PlayTime}" Width="80" Util:GridViewSort.PropertyName="TotalPlayTime">
+                    <GridViewColumn x:Name="PlayTimeColumn" Header="{loc:Loc Column_PlayTime}" Width="80" Util:GridViewSort.PropertyName="TotalPlayTime">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding TotalPlayTimeString}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_FirstPlayed}" Width="115" Util:GridViewSort.PropertyName="FirstPlayTime">
+                    <GridViewColumn x:Name="FirstPlayedColumn" Header="{loc:Loc Column_FirstPlayed}" Width="115" Util:GridViewSort.PropertyName="FirstPlayTime">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding FirstPlayTimeString}"></TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="{loc:Loc Column_LastPlayed}" Width="115" Util:GridViewSort.PropertyName="LastPlayTime">
+                    <GridViewColumn x:Name="LastPlayedColumn" Header="{loc:Loc Column_LastPlayed}" Width="115" Util:GridViewSort.PropertyName="LastPlayTime">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Foreground="{Binding Path=IsPathExist,Converter={StaticResource pathStyleConverter}}" Text="{Binding LastPlayTimeString}"></TextBlock>

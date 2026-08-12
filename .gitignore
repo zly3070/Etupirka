@@ -11,6 +11,7 @@ $RECYCLE.BIN/
 .vs/
 bin/
 obj/
+artifacts/
 
 # Windows Installer files
 *.cab
