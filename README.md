@@ -3,13 +3,16 @@
 ## 📝 本フォークについて / About This Fork / 关于本分支
 
 本リポジトリは **Etupirka の多言語移植版（フォーク）** です。  
-オリジナルの日本語インターフェースを**簡体字中国語**と**英語**に翻訳し、多言語対応を**実装を進めています**（作業中）。
+オリジナルの日本語インターフェースを**簡体字中国語**と**英語**に翻訳し、多言語対応を**実装を進めています**。
+また、列ヘッダーに関するいくつかのバグを修正しました。
 
 This repository is a **multilingual port (fork) of Etupirka**.  
-The original Japanese interface **is being translated** into **Simplified Chinese** and **English** to support multiple languages. (Work in progress)
+The original Japanese interface **is being translated** into **Simplified Chinese** and **English** to support multiple languages. 
+Also fixed several bugs related to column headers.
 
 本仓库是 **Etupirka 的多语言移植版（Fork）**。  
-**正在进行**将原始日文界面翻译为**简体中文**和**英文**的工作，以实现多语言支持。（开发中）
+将原始日文界面翻译为**简体中文**和**英文**的工作，以实现多语言支持。
+并修复了若干列头相关的 bug。
 
 | | | |
 | :--- | :--- | :--- |
