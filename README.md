@@ -30,6 +30,12 @@ Also fixed several bugs related to column headers.
 
 ## ダウンロード
 
+[Github](https://github.com/zly3070/Etupirka/releases "https://github.com/zly3070/Etupirka/releases")
+
+#### 0.7.0
+- Added Simplified Chinese and English support
+- Fixed several bugs related to column headers
+
 [Github](https://github.com/Aixile/Etupirka/releases "https://github.com/Aixile/Etupirka/releases")
 
 #### 0.6.0
